@@ -1,0 +1,12 @@
+-- Эта функция помогает посчитать, сколько всего поставщиков материалов есть у компании   
+CREATE OR REPLACE FUNCTION total_records() 
+RETURNS integer AS $total$
+DECLARE
+total integer;
+BEGIN
+SELECT count(*) into total from material_provider;
+RETURN total;
+END;
+$total$ LANGUAGE plpgsql;
+
+SELECT total_records();

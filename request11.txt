@@ -1,0 +1,9 @@
+-- Этот запрос вывод самую большую величину расходов
+WITH type_value AS (
+    SELECT type, sum(value) as full_value
+    FROM costs
+    GROUP BY type
+   )
+SELECT max(full_value)
+FROM type_value;
+

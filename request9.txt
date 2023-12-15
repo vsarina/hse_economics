@@ -1,0 +1,7 @@
+-- Этот запрос выводит список городов по убыванию количества заказов
+SELECT s.city, count(*) as num_orders
+FROM orders AS o
+JOIN shops AS s
+ON s.id_shop = o.id_shop
+GROUP BY 1
+ORDER BY 2 DESC;

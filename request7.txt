@@ -1,0 +1,2 @@
+-- Через эту оконную функцию анализируем зарплаты по должностям (сравниваем со средним значением по должности)
+SELECT name, job, wage_month, avg(wage_month) OVER (PARTITION BY job) FROM personnel;

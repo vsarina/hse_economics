@@ -1,0 +1,10 @@
+-- Эта функция отображает максимальный по сумме заказ из имеющихся в базе   
+CREATE OR REPLACE FUNCTION max_order() 
+RETURNS real AS $max_order$
+DECLARE
+max_order real;
+BEGIN
+SELECT max(sum) into max_order from orders;
+RETURN max_order;
+END;
+$max_order$ LANGUAGE plpgsql;

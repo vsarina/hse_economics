@@ -1,0 +1,276 @@
+-- Создадим все представления базы данных
+
+CREATE TABLE brends   
+(id_brend serial UNIQUE NOT NULL PRIMARY KEY, 
+brend_name varchar( 40 ) NOT NULL,
+country text NOT NULL,
+shop_num serial,
+work_num serial,
+turnover real, 
+CONSTRAINT quantity CHECK (shop_num > 0 AND work_num > 0)
+);
+
+CREATE TABLE shops   
+(id_shop serial UNIQUE NOT NULL PRIMARY KEY, 
+id_brend serial REFERENCES brends (id_brend),  
+city text NOT NULL,
+address text NOT NULL
+);
+
+CREATE TABLE items   
+(id_item serial UNIQUE NOT NULL PRIMARY KEY, 
+id_brend serial REFERENCES brends (id_brend),  
+composition text NOT NULL,
+colors text NOT NULL,
+in_stock boolean,
+item_quantity real,
+id_shop serial REFERENCES shops (id_shop),
+CONSTRAINT out_of_stock CHECK ((in_stock = '0' AND item_quantity = 0) OR (in_stock = '1' AND item_quantity > 0))
+);
+
+CREATE TABLE personnel   
+(id_worker serial UNIQUE NOT NULL PRIMARY KEY, 
+id_brend serial REFERENCES brends (id_brend),  
+name text NOT NULL,
+job text NOT NULL,
+work_days text NOT NULL,
+wage_day real,
+wage_month real, 
+CONSTRAINT wages CHECK (wage_day > 0 AND wage_month > 0)
+);
+
+CREATE TABLE costs   
+(id_cost serial UNIQUE NOT NULL PRIMARY KEY, 
+id_brend serial REFERENCES brends (id_brend),  
+type text NOT NULL,
+name text NOT NULL,
+value real,
+date date, 
+CONSTRAINT value CHECK (value >= 0)
+);
+
+CREATE TABLE material_provider   
+(id_provider serial UNIQUE NOT NULL PRIMARY KEY, 
+id_items text,  
+material text NOT NULL,
+in_stock boolean,
+quantity real, 
+CONSTRAINT out_of_stock CHECK ((in_stock = '0' AND quantity = 0) OR (in_stock = '1' AND quantity > 0))
+);
+
+CREATE TABLE orders   
+(id_order serial UNIQUE NOT NULL PRIMARY KEY, 
+id_brend serial REFERENCES brends (id_brend),
+id_shop serial REFERENCES shops (id_shop),
+date date, 
+online boolean,
+content jsonb NOT NULL,
+sum real,
+CONSTRAINT sum CHECK (sum >= 0)
+);
+
+CREATE TABLE finance   
+(date_share date UNIQUE NOT NULL PRIMARY KEY, 
+id_brend serial REFERENCES brends (id_brend),  
+price real NOT NULL,
+CONSTRAINT price_share CHECK (price >= 0)
+);
+
+-- Теперь вставим в каждую из таблиц несколько строк для реализации запросов
+
+INSERT INTO brends ( id_brend, brend_name, country, shop_num, work_num, turnover )
+VALUES (0, 'Zara', 'Spain', 2131, 25100, 18000000000 ),
+(1, 'Massimo Dutti', 'Spain', 766, 16540, 1800000000 ),
+(2, 'Bershka', 'Spain', 1107, 18450, 2240000000 ),
+(3, 'Oysho', 'Spain', 678, 12000, 570000000 ),
+(4, 'Pull & Bear', 'Spain', 974, 20050, 1860000000 ),
+(5, 'Stradivarius', 'Spain', 1011, 19810, 1530000000 ),
+(6, 'Zara Home', 'Spain', 603, 9080, 435000000 );
+
+INSERT INTO shops ( id_shop, id_brend, city, address)
+VALUES (0, 0, 'Moscow', 'Leningradskoe sh. 16A'),
+(1, 0, 'Moscow', 'Manezhnaya pl. 1'),
+(2, 0, 'Saint-Petersburg', 'Ligovskiy pr. 30A'),
+(3, 2, 'Moscow', 'Krokus Siti Moll'),
+(4, 2, 'Vladivostok', 'Kalina Moll'),
+(5, 2, 'Moscow', 'Sh. Entuziastov 12-2'),
+(6, 4, 'Moscow', 'Varshavskoe sh. 140');
+
+INSERT INTO items ( id_item, id_brend, composition, colors, in_stock, item_quantity, id_shop)
+VALUES (0, 4, '100% cotton', 'white, black', '1', 1534, 3),
+( 1, 0, '50% cotton, 50% polyester', 'red, blue, yellow', '1', 10004, 2),
+( 2, 0, '100% cotton', 'white', '0', 0, 4),
+( 3, 5, '100% acril', 'pink, purple', '1', 450, 2),
+( 4, 3, '33% cotton, 33% acril, 33% modal', 'green, white', '1', 18450, 4),
+( 5, 2, '100% wool', 'grey', '1', 12000, 5),
+( 6, 2, '76% cotton, 24% elastane', 'red, black', '0', 0, 1),
+( 7, 1, '100% polyester', 'black', '1', 19810, 0),
+( 8, 4, '80% viscose, 20% polyester', 'brown', '0', 0, 3);
+
+INSERT INTO personnel ( id_worker, id_brend, name, job, work_days, wage_day, wage_month)
+VALUES (0, 4, 'Vasiliev Alexey Olegovich', 'director', 'Monday, Tuesday, Wednesday, Thursday, Friday', 15000, 300000),
+( 1, 0, 'Tavretskaya Evgenia Sergeevna', 'manager', 'Monday, Tuesday, Wednesday, Thursday, Friday', 5000, 100000),
+( 2, 0, 'Gorshkova Tatiana Dmitrievna', 'shop assistant', 'Monday, Wednesday, Thursday, Friday, Sunday', 1500, 30000),
+( 3, 5, 'Kostin Artur Nikitich', 'director', 'Monday, Tuesday, Wednesday, Thursday, Friday', 25000, 500000),
+( 4, 4, 'Streletskiy Petr Fedorovich', 'security guard', 'Monday, Tuesday, Wednesday, Thursday, Friday', 2500, 50000),
+( 5, 2, 'Bulatova Polina Antonovna', 'shop assistant', 'Monday, Tuesday, Wednesday', 1000, 20000),
+( 6, 2, 'Matveeva Anastasia Dmitrievna', 'shop assistant', 'Monday, Tuesday, Thursday, Friday, Saturday', 1750, 35000),
+( 7, 4, 'Ivanov Artem Victorovich', 'manager', 'Monday, Tuesday, Wednesday, Thursday, Friday', 4500, 90000),
+( 8, 4, 'Meshkov Boris Konstantinovich', 'shop assistant', 'Monday, Wednesday, Friday', 1250, 30000);
+
+INSERT INTO costs ( id_cost, id_brend, type, name, value, date)
+VALUES (0, 0, 'electricity', 'store operation', 100000, '2022.01.31'::date),
+(1, 1, 'rent', 'store rent', 450000, '2022.01.01'::date),
+(2, 5, 'electricity', 'warehouse operation', 250000, '2022.05.31'::date),
+(3, 2, 'wage', 'directors wage', 300000, '2022.06.20'::date),
+(4, 3, 'electricity', 'store operation', 150000, '2022.11.30'::date),
+(5, 2, 'materials', 'id2', 200000, '2022.03.14'::date),
+(6, 4, 'rent', 'warehouse rent', 500000, '2022.10.01'::date);
+
+INSERT INTO material_provider ( id_provider, id_items, material, in_stock, quantity)
+VALUES (0, '0, 2, 33', 'cotton', '1', 100000),
+(1, '1, 7, 8, 54', 'polyester', '0', 0),
+(2, '3, 16, 77', 'acril', '1', 250000),
+(3, '5, 27, 31', 'wool', '1', 300000),
+(4, '4', 'modal', '1', 150000),
+(5, '6, 10, 14, 56', 'elastane', '0', 0),
+(6, '8, 50', 'viscose', '1', 500000);
+
+INSERT INTO orders ( id_order, id_brend, id_shop, date, online, content, sum)
+VALUES (0, 0, 2, '2022.12.11'::date, '0', '{"t-shirt" : [3005, 1]}'::jsonb, 3005),
+(1, 0, 2, '2022.12.11'::date, '1', '{"socks" : [500, 1], "jeans": [4500, 2]}'::jsonb, 9500),
+(2, 0, 1, '2022.12.11'::date, '0', '{"coat" : [15000, 1], "jeans": [4500, 1], "pajamas" : [5000, 1]}'::jsonb, 24500),
+(3, 0, 1, '2022.12.11'::date, '0', '{"coat" : [15000, 1]}'::jsonb, 15000),
+(4, 0, 0, '2022.12.11'::date, '1', '{"blouse" : [3000, 1]}'::jsonb, 3000),
+(5, 2, 5, '2022.12.11'::date, '0', '{"shorts" : [2500, 1], "jeans": [4500, 1]}'::jsonb, 7000),
+(6, 4, 6, '2022.12.11'::date, '0', '{"t-shirt" : [1500, 1]}'::jsonb, 1500);
+
+INSERT INTO finance ( date_share, id_brend, price)
+VALUES ('2020.07.20'::date, 0, 65),
+('2022.12.12'::date, 1, 40),
+('2022.11.01'::date, 0, 70);
+
+-- Создадим триггерные функции и триггеры к ним
+
+--Функция, которая не дает вводить пустое имя и зарплату, а также отрицательную зарплату 
+CREATE FUNCTION personnel_stamp() RETURNS trigger AS $personnel_stamp$
+    BEGIN
+        -- Проверить, что указаны имя сотрудника и зарплата
+        IF NEW.name IS NULL THEN
+            RAISE EXCEPTION 'name cannot be null';
+        END IF;
+        IF NEW.wage_day IS NULL THEN
+            RAISE EXCEPTION '% cannot have null salary', NEW.name;
+        END IF;
+
+        -- Кто будет работать, если за это надо будет платить?
+        IF NEW.wage_day < 0 THEN
+            RAISE EXCEPTION '% cannot have a negative salary', NEW.name;
+        END IF;
+
+        -- Запомнить, кто и когда изменил запись
+        NEW.last_date := current_timestamp;
+        NEW.last_user := current_user;
+        RETURN NEW;
+    END;
+$personnel_stamp$ LANGUAGE plpgsql;
+
+CREATE TRIGGER personnel_stamp BEFORE INSERT OR UPDATE ON personnel
+    FOR EACH ROW EXECUTE PROCEDURE personnel_stamp();
+
+-- Функция, которая проверяет, что стоимость акции не может быть отрицательной величиной
+CREATE FUNCTION check_finance() RETURNS trigger AS $check_finance$
+    BEGIN
+        -- Проверить, что стоимость акции неотрицательна
+        IF NEW.price < 0 THEN
+            RAISE EXCEPTION 'share price cannot be negative';
+        END IF;
+
+        RETURN NEW;
+    END;
+$check_finance$ LANGUAGE plpgsql;
+    
+CREATE TRIGGER check_finance
+AFTER INSERT OR UPDATE OR DELETE ON finance
+    FOR EACH ROW EXECUTE PROCEDURE check_finance();
+
+-- Напишем хранимые функции
+
+-- Эта функция помогает посчитать, сколько всего поставщиков материалов есть у компании   
+CREATE OR REPLACE FUNCTION total_records() 
+RETURNS integer AS $total$
+DECLARE
+total integer;
+BEGIN
+SELECT count(*) into total from material_provider;
+RETURN total;
+END;
+$total$ LANGUAGE plpgsql;
+
+SELECT total_records();
+
+-- Эта функция отображает максимальный по сумме заказ из имеющихся в базе   
+CREATE OR REPLACE FUNCTION max_order() 
+RETURNS real AS $max_order$
+DECLARE
+max_order real;
+BEGIN
+SELECT max(sum) into max_order from orders;
+RETURN max_order;
+END;
+$max_order$ LANGUAGE plpgsql;
+
+-- Запишем различные полезные запросы для данной базы данных
+
+-- С помощью этого запроса с подзапросом можно посмотреть на какие-то аномальные или просто значимые статьи расходов
+SELECT count(*) FROM costs
+WHERE value > (SELECT avg(value) FROM costs);
+
+-- Это табличное выражение помогает отразить итоговые суммы заказов по московским магазинам сети
+WITH top_moscow_shops AS (
+    SELECT id_shop, SUM(sum) AS total_sales
+    FROM orders
+    GROUP BY id_shop
+   ), moscow_shops AS (
+    SELECT id_shop
+    FROM shops
+    WHERE city = 'Moscow'
+   )
+SELECT id_shop,
+   SUM(sum) AS shop_sales
+FROM orders
+WHERE id_shop IN (SELECT id_shop FROM moscow_shops)
+GROUP BY id_shop;
+
+-- Через эту оконную функцию анализируем зарплаты по должностям (сравниваем со средним значением по должности)
+SELECT name, job, wage_month, avg(wage_month) OVER (PARTITION BY job) FROM personnel;
+
+-- Этот запрос выдает все адреса магазинов, в которых есть в наличии интересуемые товары
+SELECT i.id_item, s.city, s.address, i.item_quantity
+FROM items AS i
+JOIN shops AS s
+ON s.id_shop = i.id_shop
+WHERE i.id_item = 4 OR i.id_item = 7
+ORDER BY s.address;
+
+-- Этот запрос выводит список городов по убыванию количества заказов
+SELECT s.city, count(*) as num_orders
+FROM orders AS o
+JOIN shops AS s
+ON s.id_shop = o.id_shop
+GROUP BY 1
+ORDER BY 2 DESC;
+
+-- Через такой запрос можно проанализировать количество заказов по типу (онлайн/оффлайн)
+SELECT online, count(*) as num_orders FROM orders
+GROUP BY online;
+
+-- Этот запрос вывод самую большую величину расходов
+WITH type_value AS (
+    SELECT type, sum(value) as full_value
+    FROM costs
+    GROUP BY type
+   )
+SELECT max(full_value)
+FROM type_value;
+

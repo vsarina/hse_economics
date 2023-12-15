@@ -1,0 +1,15 @@
+-- Функция, которая проверяет, что стоимость акции не может быть отрицательной величиной
+CREATE FUNCTION check_finance() RETURNS trigger AS $check_finance$
+    BEGIN
+        -- Проверить, что стоимость акции неотрицательна
+        IF NEW.price < 0 THEN
+            RAISE EXCEPTION 'share price cannot be negative';
+        END IF;
+
+        RETURN NEW;
+    END;
+$check_finance$ LANGUAGE plpgsql;
+    
+CREATE TRIGGER check_finance
+AFTER INSERT OR UPDATE OR DELETE ON finance
+    FOR EACH ROW EXECUTE PROCEDURE check_finance();

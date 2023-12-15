@@ -1,0 +1,26 @@
+
+--Функция, которая не дает вводить пустое имя и зарплату, а также отрицательную зарплату 
+CREATE FUNCTION personnel_stamp() RETURNS trigger AS $personnel_stamp$
+    BEGIN
+        -- Проверить, что указаны имя сотрудника и зарплата
+        IF NEW.name IS NULL THEN
+            RAISE EXCEPTION 'name cannot be null';
+        END IF;
+        IF NEW.wage_day IS NULL THEN
+            RAISE EXCEPTION '% cannot have null salary', NEW.name;
+        END IF;
+
+        -- Кто будет работать, если за это надо будет платить?
+        IF NEW.wage_day < 0 THEN
+            RAISE EXCEPTION '% cannot have a negative salary', NEW.name;
+        END IF;
+
+        -- Запомнить, кто и когда изменил запись
+        NEW.last_date := current_timestamp;
+        NEW.last_user := current_user;
+        RETURN NEW;
+    END;
+$personnel_stamp$ LANGUAGE plpgsql;
+
+CREATE TRIGGER personnel_stamp BEFORE INSERT OR UPDATE ON personnel
+    FOR EACH ROW EXECUTE PROCEDURE personnel_stamp();

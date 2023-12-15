@@ -1,0 +1,15 @@
+-- Это табличное выражение помогает отразить итоговые суммы заказов по московским магазинам сети
+WITH top_moscow_shops AS (
+    SELECT id_shop, SUM(sum) AS total_sales
+    FROM orders
+    GROUP BY id_shop
+   ), moscow_shops AS (
+    SELECT id_shop
+    FROM shops
+    WHERE city = 'Moscow'
+   )
+SELECT id_shop,
+   SUM(sum) AS shop_sales
+FROM orders
+WHERE id_shop IN (SELECT id_shop FROM moscow_shops)
+GROUP BY id_shop;

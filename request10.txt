@@ -1,0 +1,3 @@
+-- Через такой запрос можно проанализировать количество заказов по типу (онлайн/оффлайн)
+SELECT online, count(*) as num_orders FROM orders
+GROUP BY online;

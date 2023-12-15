@@ -1,0 +1,7 @@
+-- Этот запрос выдает все адреса магазинов, в которых есть в наличии интересуемые товары
+SELECT i.id_item, s.city, s.address, i.item_quantity
+FROM items AS i
+JOIN shops AS s
+ON s.id_shop = i.id_shop
+WHERE i.id_item = 4 OR i.id_item = 7
+ORDER BY s.address;
